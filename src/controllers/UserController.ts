@@ -1,9 +1,7 @@
-import { NextFunction, Request, Response } from "express";
-import { LoginRequest, SignupRequest, CurrentUser } from "../helpers/Types";
+import { Request, Response } from "express";
+import { LoginRequest, SignupRequest } from "../helpers/Types";
 import prisma from "../../prisma";
 import { User } from "@prisma/client";
-import { SignupRequestValidator, LoginRequestValidator } from "../helpers/RequestValidators";
-import { error, reqMissed, invalidField, notFound } from "../helpers/Responses";
 import * as bcr from "bcrypt";
 import * as rstr from 'randomstring'
 import * as jwt from "jsonwebtoken"
@@ -13,7 +11,7 @@ require('dotenv').config();
 const verifyEmail = (req: Request, res: Response) => {
   const email: string = req.body.email;
   if (!email) {
-    return reqMissed(res, 'email');
+    return res.status(400).json({message : "Missing email!"});
   }
   const otp = rstr.generate(6);
   //adding email process to queue
@@ -25,23 +23,12 @@ const verifyEmail = (req: Request, res: Response) => {
     }
   );
 
-  return res.status(200).json({otp : otp, email : email});
+  return res.status(200).json({ otp: otp, email: email });
 }
 
 const SignupHandler = async (req: Request, res: Response) => {
-  //json request body
-  const body: SignupRequest = req.body;
-
-  // validating sign up request using essential parameters required to create a user
-  const validation = SignupRequestValidator(body);
-
-  //handling failed validation
-  if (!validation[0]) {
-    return reqMissed(res, validation[1]);
-  }
-
   //destructuring request data
-  const { university_email, first_name, last_name, password, uid } = body;
+  const { university_email, first_name, last_name, password, uid }: SignupRequest = req.body;
 
   //configuring jwt expiry 
   var jwtConfig = {};
@@ -52,7 +39,7 @@ const SignupHandler = async (req: Request, res: Response) => {
   //checking for an existing user
   let user: User | null = await prisma.user.findFirst({ where: { university_email: university_email } });
   if (user) {
-    return invalidField(res, 'Email');
+    return res.status(409).json({ message: `Account with ${university_email} already exists!` });
   }
 
   //hashing the password using bcrypt
@@ -72,25 +59,16 @@ const SignupHandler = async (req: Request, res: Response) => {
       const token = jwt.sign(doc, String(process.env.JWT_SECRET_KEY), jwtConfig)
       return res.status(200).json({ user: doc, token: token });
     }).catch((err: Error) => {
-      return error(res, err.message);
+      return res.status(500).json({ message: err.message });
     });
   })
     .catch((err: Error) => {
-      return error(res, err.message);
+      return res.status(500).json({ message: err.message });
     });
 };
 
 const LoginHandler = async (req: Request, res: Response) => {
-  //json request body
-  const body: LoginRequest = req.body;
-
-  //validating request body
-  const validation = LoginRequestValidator(body);
-  if (!validation[0]) {
-    return reqMissed(res, validation[1]);
-  }
-
-  const { university_email, password } = body;
+  const { university_email, password }: LoginRequest = req.body;
 
   //configuring jwt expiry 
   var jwtConfig = {};
@@ -101,35 +79,35 @@ const LoginHandler = async (req: Request, res: Response) => {
   //checking for an existing user
   let user: User | null = await prisma.user.findFirst({ where: { university_email: university_email } });
   if (!user) {
-    return notFound(res, 'User');
+    return res.status(404).json({message : `User with ${university_email} doesn't exist!`});
   }
 
   let mUser: any | { password?: string } = user;
   //comparing password with stored hash
   bcr.compare(password, user.password).then((match: boolean) => {
     if (!match) {
-      return invalidField(res, password);
+      return res.status(409).json({message : "Wrong Password!"});
     }
     delete mUser.password;
     const token = jwt.sign(mUser, String(process.env.JWT_SECRET_KEY), jwtConfig)
     return res.status(200).json({ user: mUser, token: token });
 
   }).catch(
-    (err: Error) => { return error(res, err.message) }
+    (err: Error) => { return res.status(500).json({ message: err.message }) }
   )
 }
 
 const getUserById = async (req: Request, res: Response) => {
   //checking for a valid id param
   if (!Number(req.params.id)) {
-    return invalidField(res, 'ID')
+    return res.status(400).json({message : "missing/invalid id"})
   }
   const id = Number(req.params.id);
   //fetching user data from db
   const user: User | null = await prisma.user.findFirst({ where: { id: id } })
   //handling wrong user id
   if (!user) {
-    return notFound(res, "User");
+    return res.status(404).json({message : `User doesn't exist!`});
   }
 
   return res.status(200).json({ user: user })

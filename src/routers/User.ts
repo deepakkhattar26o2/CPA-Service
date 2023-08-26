@@ -1,12 +1,12 @@
 import { Router } from "express";
 import { LoginHandler, SignupHandler, getAllUsers, getUserById, verifyEmail } from "../controllers/UserController";
-import { verifyAuth } from "../helpers/Middleware";
+import { SignupRequestValidator, verifyAuth } from "../helpers/Middleware";
 
 const UserRouter = Router();
 
 UserRouter.post('/verify', verifyEmail)
 
-UserRouter.post('/signup', SignupHandler);
+UserRouter.post('/signup', SignupRequestValidator, SignupHandler);
 
 UserRouter.post('/login', LoginHandler);
 

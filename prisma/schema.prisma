@@ -11,19 +11,20 @@ datasource db {
 }
 
 model User {
-  id                       Int      @id @default(autoincrement())
+  id                       Int              @id @default(autoincrement())
   //requirements for creating a user
-  university_email         String   @unique
+  university_email         String           @unique
   first_name               String
   last_name                String
   password                 String
-  uid                      String   @unique
+  uid                      String           @unique
   //academic branching
+  batch                    Int?
   course                   String?
   stream                   String?
   has_gap_year             Boolean?
   //contact details
-  personal_email           String?  @unique
+  personal_email           String?          @unique
   contact_number           String?
   alternate_contact_number String?
   current_address          String?
@@ -34,13 +35,47 @@ model User {
   hsc_result               Float?
   number_of_backlogs       Int?
   //files
-  has_matric_attachment    Boolean  @default(false)
-  has_hsc_attachment       Boolean  @default(false)
-  has_resume_attachment    Boolean  @default(false)
-  has_pfp_attachment       Boolean  @default(false)
-  created_at               DateTime @default(now())
+  has_matric_attachment    Boolean          @default(false)
+  has_hsc_attachment       Boolean          @default(false)
+  has_resume_attachment    Boolean          @default(false)
+  has_pfp_attachment       Boolean          @default(false)
+  role                     Role             @default(USER)
+  registered_drives        PlacementDrive[] @relation(name: "registered-drives")
+  created_at               DateTime         @default(now())
 }
 
+model Company {
+  id         Int              @id @default(autoincrement())
+  email      String           @unique
+  password   String
+  name       String           @unique
+  about      String?
+  website    String?
+  drives     PlacementDrive[]
+  role       Role             @default(COMPANY)
+  created_at DateTime         @default(now())
+}
 
+model PlacementDrive {
+  id                   Int      @id @default(autoincrement())
+  companyId            Int?
+  company              Company? @relation(fields: [companyId], references: [id])
+  eligibility_criteria String
+  batch_requried       Int
+  type_of_drive        String
+  date_of_drive        String
+  positions            String[]
+  stream_required      String[]
+  job_profile          String
+  job_location         String
+  pay_package          String
+  bond                 String?
+  placement_process    String
+  participants         User[]   @relation(name: "registered-drives")
+  created_at           DateTime @default(now())
+}
 
-
+enum Role {
+  USER
+  COMPANY
+}
