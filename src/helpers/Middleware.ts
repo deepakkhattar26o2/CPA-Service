@@ -8,7 +8,7 @@ const authDetails = (req: Request): CurrentUser => {
   return decoded;
 };
 
-const verifyAuth = (req: Request, res: Response, next: NextFunction) => {
+const VerifyAuth = (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = String(req.headers.authorization);
     jwt.verify(token, String(process.env.JWT_SECRET_KEY));
@@ -47,6 +47,15 @@ const LoginRequestValidator = (req: Request, res: Response, next: NextFunction) 
   next();
 }
 
-export { SignupRequestValidator, LoginRequestValidator }
+const FileNameValidator = (req : Request, res : Response, next : NextFunction)=>{
+  if(!req.query.attachment_type){
+    return res.status(400).json({message : "Missing attachment name query"})
+  }
+  let field = String(req.query.attachment_type)
+  if(field!='matric' && field!= 'hsc' &&field!='resume' && field!='pfp'){
+    return res.status(409).json({message : "Invalid file name"})
+  }
+  next();
+}
 
-export { authDetails, verifyAuth }
+export { authDetails, VerifyAuth ,SignupRequestValidator, LoginRequestValidator, FileNameValidator }

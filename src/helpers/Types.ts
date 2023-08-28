@@ -23,6 +23,22 @@ interface LoginRequest {
   password: string;
 }
 
+interface UserUpdateRequest {
+  batch?: number
+  course?: string
+  stream?: string
+  has_gap_year?: boolean
+  personal_email?: string
+  contact_number?: string
+  alternate_contact_number?: string
+  current_address?: string
+  permanent_address?: string
+  current_cgpa?: number
+  matric_result?: number
+  hsc_result?: number
+  number_of_backlogs?: number
+}
+
 interface CurrentUser {
   id: number
   university_email: string
@@ -44,5 +60,11 @@ interface CurrentUser {
   has_pfp_attachment: boolean
   created_at: string
 }
+interface AttachmentConfig {
+  has_matric_attachment?: boolean
+  has_hsc_attachment?: boolean
+  has_resume_attachment?: boolean
+  has_pfp_attachment?: boolean
+}
 
-export { SignupRequest, LoginRequest, CurrentUser }
+export { SignupRequest, LoginRequest, CurrentUser , UserUpdateRequest ,AttachmentConfig}

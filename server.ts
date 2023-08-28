@@ -1,6 +1,7 @@
 import express, { Application } from "express";
 import http from "http";
 import AppRouter from "./API";
+import { ValidateDirectory } from "./src/helpers/FileHandling";
 require("dotenv").config();
 const cors = require('cors')
 
@@ -22,5 +23,6 @@ const server = http.createServer(app);
 
 //starting the server on the defined port
 server.listen(port, () => {
+  ValidateDirectory();
   console.log(`Server listening at http://localhost:${port}`);
 });

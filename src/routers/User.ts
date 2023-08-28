@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { LoginHandler, SignupHandler, getAllUsers, getUserById, verifyEmail } from "../controllers/UserController";
-import { SignupRequestValidator, verifyAuth } from "../helpers/Middleware";
+import { LoginHandler, SignupHandler, getAllUsers, getUserById, handleAttachmentUpload, updateUserDetails, verifyEmail } from "../controllers/UserController";
+import { FileNameValidator, LoginRequestValidator, SignupRequestValidator, VerifyAuth } from "../helpers/Middleware";
+import { UploadFile } from "../helpers/FileHandling";
 
 const UserRouter = Router();
 
@@ -8,11 +9,15 @@ UserRouter.post('/verify', verifyEmail)
 
 UserRouter.post('/signup', SignupRequestValidator, SignupHandler);
 
-UserRouter.post('/login', LoginHandler);
+UserRouter.post('/login', LoginRequestValidator, LoginHandler);
 
-UserRouter.get('/all',verifyAuth, getAllUsers);
+UserRouter.post('/upload', VerifyAuth, FileNameValidator, UploadFile.single('resume'), handleAttachmentUpload)
 
-UserRouter.get('/:id', verifyAuth,  getUserById);
+UserRouter.get('/all', VerifyAuth, getAllUsers);
+
+UserRouter.patch('/user', VerifyAuth, updateUserDetails);
+
+UserRouter.get('/:id', VerifyAuth, getUserById);
 
 
 export default UserRouter; 

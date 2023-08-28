@@ -1,17 +1,18 @@
 import { Request, Response } from "express";
-import { LoginRequest, SignupRequest } from "../helpers/Types";
+import { AttachmentConfig, CurrentUser, LoginRequest, SignupRequest, UserUpdateRequest } from "../helpers/Types";
 import prisma from "../../prisma";
 import { User } from "@prisma/client";
 import * as bcr from "bcrypt";
 import * as rstr from 'randomstring'
 import * as jwt from "jsonwebtoken"
 import emailQueue from "../helpers/EmailQueue";
+import { authDetails } from "../helpers/Middleware";
 require('dotenv').config();
 
 const verifyEmail = (req: Request, res: Response) => {
   const email: string = req.body.email;
   if (!email) {
-    return res.status(400).json({message : "Missing email!"});
+    return res.status(400).json({ message: "Missing email!" });
   }
   const otp = rstr.generate(6);
   //adding email process to queue
@@ -79,14 +80,14 @@ const LoginHandler = async (req: Request, res: Response) => {
   //checking for an existing user
   let user: User | null = await prisma.user.findFirst({ where: { university_email: university_email } });
   if (!user) {
-    return res.status(404).json({message : `User with ${university_email} doesn't exist!`});
+    return res.status(404).json({ message: `User with ${university_email} doesn't exist!` });
   }
 
   let mUser: any | { password?: string } = user;
   //comparing password with stored hash
   bcr.compare(password, user.password).then((match: boolean) => {
     if (!match) {
-      return res.status(409).json({message : "Wrong Password!"});
+      return res.status(409).json({ message: "Wrong Password!" });
     }
     delete mUser.password;
     const token = jwt.sign(mUser, String(process.env.JWT_SECRET_KEY), jwtConfig)
@@ -100,14 +101,14 @@ const LoginHandler = async (req: Request, res: Response) => {
 const getUserById = async (req: Request, res: Response) => {
   //checking for a valid id param
   if (!Number(req.params.id)) {
-    return res.status(400).json({message : "missing/invalid id"})
+    return res.status(400).json({ message: "missing/invalid id" })
   }
   const id = Number(req.params.id);
   //fetching user data from db
   const user: User | null = await prisma.user.findFirst({ where: { id: id } })
   //handling wrong user id
   if (!user) {
-    return res.status(404).json({message : `User doesn't exist!`});
+    return res.status(404).json({ message: `User doesn't exist!` });
   }
 
   return res.status(200).json({ user: user })
@@ -118,5 +119,39 @@ const getAllUsers = async (req: Request, res: Response) => {
   return res.status(200).json({ users: users });
 }
 
+const updateUserDetails = (req: Request, res: Response) => {
+  const user: CurrentUser = authDetails(req);
+  const body: UserUpdateRequest = req.body;
+  prisma.user.update({ where: { id: user.id }, data: body }).then(
+    (uuser: User | { password?: string }) => {
+      delete uuser.password;
+      return res.status(200).json({ updatedUser: uuser })
+    }
+  )
+    .catch((err: Error) => { return res.status(500).json({ message: err.message }) })
+}
 
-export { SignupHandler, LoginHandler, getUserById, getAllUsers, verifyEmail };
+
+const handleAttachmentUpload = (req: Request, res: Response) => {
+  const user: CurrentUser = authDetails(req);
+  let field = String(req.query.attachment_type)
+  var attachmentConfig: AttachmentConfig = {}
+
+  if (field == 'resume') {
+    attachmentConfig = { has_resume_attachment: true }
+  }
+  else if (field == 'hsc') {
+    attachmentConfig = { has_hsc_attachment: true }
+  }
+  else if(field=='matric'){
+    attachmentConfig = {has_matric_attachment : true}
+  }
+  else if(field=='pfp'){
+    attachmentConfig = {has_pfp_attachment : true}
+  }
+  prisma.user.update({ where: { id: user.id }, data: attachmentConfig })
+  .then((doc)=>{res.status(200).json({message : `${field} uploaded successfully`})})
+  .catch((err : Error)=>{ res.status(500).json({message : err.message})})
+}
+
+export { SignupHandler, LoginHandler, getUserById, getAllUsers, verifyEmail, updateUserDetails , handleAttachmentUpload};
