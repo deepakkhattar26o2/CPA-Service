@@ -63,7 +63,9 @@ interface CurrentUser {
 interface AttachmentConfig {
   has_matric_attachment?: boolean
   has_hsc_attachment?: boolean
-  has_resume_attachment?: boolean
+  has_resume1_attachment?: boolean 
+  has_resume2_attachment? : boolean
+  has_resume3_attachment?: boolean
   has_pfp_attachment?: boolean
 }
 

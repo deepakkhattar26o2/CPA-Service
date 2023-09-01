@@ -1,5 +1,5 @@
 // This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// learn more about it in the docs: https://pris.l
 
 generator client {
   provider = "prisma-client-js"
@@ -11,20 +11,20 @@ datasource db {
 }
 
 model User {
-  id                       Int              @id @default(autoincrement())
+  id                       Int            @id @default(autoincrement())
   //requirements for creating a user
-  university_email         String           @unique
+  university_email         String         @unique
   first_name               String
   last_name                String
   password                 String
-  uid                      String           @unique
+  uid                      String         @unique
   //academic branching
   batch                    Int?
   course                   String?
   stream                   String?
   has_gap_year             Boolean?
   //contact details
-  personal_email           String?          @unique
+  personal_email           String?        @unique
   contact_number           String?
   alternate_contact_number String?
   current_address          String?
@@ -35,13 +35,16 @@ model User {
   hsc_result               Float?
   number_of_backlogs       Int?
   //files
-  has_matric_attachment    Boolean          @default(false)
-  has_hsc_attachment       Boolean          @default(false)
-  has_resume_attachment    Boolean          @default(false)
-  has_pfp_attachment       Boolean          @default(false)
-  role                     Role             @default(USER)
-  registered_drives        PlacementDrive[] @relation(name: "registered-drives")
-  created_at               DateTime         @default(now())
+  has_matric_attachment    Boolean        @default(false)
+  has_hsc_attachment       Boolean        @default(false)
+  has_resume1_attachment   Boolean        @default(false)
+  has_resume2_attachment   Boolean        @default(false)
+  has_resume3_attachment   Boolean        @default(false)
+  has_pfp_attachment       Boolean        @default(false)
+  role                     Role           @default(USER)
+  drives                   StudentDrive[] @relation(name: "student-drive")
+  // registered_drives        PlacementDrive[] @relation(name: "registered-drives")
+  created_at               DateTime       @default(now())
 }
 
 model Company {
@@ -57,9 +60,9 @@ model Company {
 }
 
 model PlacementDrive {
-  id                   Int      @id @default(autoincrement())
+  id                   Int            @id @default(autoincrement())
   companyId            Int?
-  company              Company? @relation(fields: [companyId], references: [id])
+  company              Company?       @relation(fields: [companyId], references: [id])
   eligibility_criteria String
   batch_requried       Int
   type_of_drive        String
@@ -70,9 +73,21 @@ model PlacementDrive {
   job_location         String
   pay_package          String
   bond                 String?
+  skills_required      String[]
   placement_process    String
-  participants         User[]   @relation(name: "registered-drives")
-  created_at           DateTime @default(now())
+  participants         StudentDrive[] @relation(name: "participants")
+  created_at           DateTime       @default(now())
+}
+
+model StudentDrive {
+  id                Int            @id @default(autoincrement())
+  student_id        Int
+  student           User           @relation(name: "student-drive", references: [id], fields: [student_id])
+  selected_resume   String
+  selected_position String
+  drive_id          Int
+  drive             PlacementDrive @relation(name: "participants", references: [id], fields: [drive_id])
+  created_at        DateTime       @default(now())
 }
 
 enum Role {

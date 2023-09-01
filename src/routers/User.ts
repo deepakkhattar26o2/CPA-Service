@@ -11,7 +11,7 @@ UserRouter.post('/signup', SignupRequestValidator, SignupHandler);
 
 UserRouter.post('/login', LoginRequestValidator, LoginHandler);
 
-UserRouter.post('/upload', VerifyAuth, FileNameValidator, UploadFile.single('resume'), handleAttachmentUpload)
+UserRouter.post('/upload', VerifyAuth, FileNameValidator, UploadFile.single('file'), handleAttachmentUpload)
 
 UserRouter.get('/all', VerifyAuth, getAllUsers);
 
