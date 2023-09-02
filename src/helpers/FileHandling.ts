@@ -1,7 +1,6 @@
 import * as fs from 'fs'
 import path from 'path';
-
-import { Request , NextFunction} from 'express'
+import { Request } from 'express'
 import multer, { FileFilterCallback } from 'multer'
 import { CurrentUser } from './Types';
 import { authDetails } from './Middleware';
@@ -23,8 +22,10 @@ const fileStorage = multer.diskStorage({
         file: Express.Multer.File, 
         cb: FileNameCallback
     ): void => {
+        let ext;
+        ext = String(req.query.attachment_type)=='pfp' ? 'jpg' : 'pdf';
         const currUser : CurrentUser = authDetails(req);
-        cb(null, `${currUser.id}-${req.query.attachment_type}.pdf`)
+        cb(null, `${currUser.id}-${req.query.attachment_type}.${ext}`)
     }
 })
 
@@ -34,10 +35,9 @@ const fileFilter = (
     callback: FileFilterCallback
 ): void => {
     if (
-        file.mimetype==='application/pdf'
-        // file.mimetype === 'image/png' ||
-        // file.mimetype === 'image/jpg' ||
-        // file.mimetype === 'image/jpeg'
+        file.mimetype==='application/pdf'||
+        file.mimetype === 'image/jpg' ||
+        file.mimetype === 'image/jpeg'
     ) {
         callback(null, true)
     } else {
