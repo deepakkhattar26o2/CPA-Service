@@ -148,32 +148,45 @@ const updateUserDetails = (req: Request, res: Response) => {
     });
 };
 
-const handleAttachmentUpload = (req: Request, res: Response) => {
+const handleAttachmentUpload = async (req: Request, res: Response) => {
   const user: CurrentUser = authDetails(req);
   let field = String(req.query.attachment_type);
   var attachmentConfig: AttachmentConfig = {};
-
-  if (field == "resume1") {
-    attachmentConfig = { has_resume1_attachment: true };
-  } else if (field == "resume2") {
-    attachmentConfig = { has_resume2_attachment: true };
-  } else if (field == "resume3") {
-    attachmentConfig = { has_resume3_attachment: true };
-  } else if (field == "hsc") {
-    attachmentConfig = { has_hsc_attachment: true };
-  } else if (field == "matric") {
-    attachmentConfig = { has_matric_attachment: true };
-  } else if (field == "pfp") {
-    attachmentConfig = { has_pfp_attachment: true };
+  if (user.role == "COMPANY") {
+    try {
+      let update = await prisma.company.update({
+        where: { id: user.id },
+        data: {
+          has_logo_attachment: true,
+        },
+      });
+      res.status(200).json({ message: "Logo uploaded successfully!" });
+    } catch (e: any) {
+      return res.status(500).json({ message: e.message });
+    }
+  } else {
+    if (field == "resume1") {
+      attachmentConfig = { has_resume1_attachment: true };
+    } else if (field == "resume2") {
+      attachmentConfig = { has_resume2_attachment: true };
+    } else if (field == "resume3") {
+      attachmentConfig = { has_resume3_attachment: true };
+    } else if (field == "hsc") {
+      attachmentConfig = { has_hsc_attachment: true };
+    } else if (field == "matric") {
+      attachmentConfig = { has_matric_attachment: true };
+    } else if (field == "pfp") {
+      attachmentConfig = { has_pfp_attachment: true };
+    }
+    prisma.user
+      .update({ where: { id: user.id }, data: attachmentConfig })
+      .then((doc) => {
+        res.status(200).json({ message: `${field} uploaded successfully` });
+      })
+      .catch((err: Error) => {
+        res.status(500).json({ message: err.message });
+      });
   }
-  prisma.user
-    .update({ where: { id: user.id }, data: attachmentConfig })
-    .then((doc) => {
-      res.status(200).json({ message: `${field} uploaded successfully` });
-    })
-    .catch((err: Error) => {
-      res.status(500).json({ message: err.message });
-    });
 };
 
 export {
