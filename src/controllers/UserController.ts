@@ -5,9 +5,9 @@ import {
   LoginRequest,
   SignupRequest,
   UserUpdateRequest,
-} from "../helpers/Types";
+} from '../../types';
 import prisma from "../../prisma";
-import { User } from "@prisma/client";
+import { User, Role } from "@prisma/client";
 import * as bcr from "bcrypt";
 import * as rstr from "randomstring";
 import * as jwt from "jsonwebtoken";
@@ -66,6 +66,7 @@ const SignupHandler = async (req: Request, res: Response) => {
             university_email: university_email,
             password: hash,
             uid: uid,
+            role : Role.USER
           },
         })
         .then((doc: User | { password?: string }) => {
@@ -152,9 +153,9 @@ const handleAttachmentUpload = async (req: Request, res: Response) => {
   const user: CurrentUser = authDetails(req);
   let field = String(req.query.attachment_type);
   var attachmentConfig: AttachmentConfig = {};
-  if (user.role == "COMPANY") {
+  if (user.role == "UNIVERSITY") {
     try {
-      let update = await prisma.company.update({
+      let update = await prisma.university.update({
         where: { id: user.id },
         data: {
           has_logo_attachment: true,

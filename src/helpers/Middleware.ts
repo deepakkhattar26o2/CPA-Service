@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import * as jwt from "jsonwebtoken";
-import { SignupRequest, LoginRequest, CurrentUser } from "./Types";
+import { SignupRequest, LoginRequest, CurrentUser } from "../../types";
 
 const authDetails = (req: Request): CurrentUser => {
   const token = String(req.headers.authorization);

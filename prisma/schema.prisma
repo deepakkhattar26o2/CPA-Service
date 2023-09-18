@@ -38,39 +38,34 @@ model User {
   drives                   StudentDrive[] @relation("student-drive")
 }
 
-model Company {
-  id                  Int              @id @default(autoincrement())
-  email               String           @unique
-  password            String
-  name                String           @unique
-  about               String?
-  website             String?
-  role                Role             @default(COMPANY)
-  created_at          DateTime         @default(now())
-  has_logo_attachment Boolean          @default(false)
-  PlacementDrive      PlacementDrive[]
-}
-
 model PlacementDrive {
-  id                   Int            @id @default(autoincrement())
-  eligibility_criteria String
-  batch_requried       Int
-  type_of_drive        String
-  positions            String[]
-  stream_required      String[]
-  job_profile          String
-  job_location         String
-  pay_package          String
-  bond                 String?
-  skills_required      String[]
-  placement_process    String
-  created_at           DateTime       @default(now())
-  closes_at            DateTime
-  date_of_drive        DateTime
-  company_id           Int
-  has_logo_attached    Boolean        @default(false)
-  Company              Company        @relation(fields: [company_id], references: [id])
-  participants         StudentDrive[] @relation("participants")
+  id                         Int            @id @default(autoincrement())
+  batch_requried             Int
+  type_of_drive              String
+  positions                  String[]
+  stream_required            String
+  job_profile                String
+  job_location               String
+  pay_package                String
+  bond                       String?
+  skills_required            String[]
+  placement_process          String
+  created_at                 DateTime       @default(now())
+  closes_at                  DateTime
+  date_of_drive              DateTime
+  has_logo_attached          Boolean        @default(false)
+  allowed_backlogs           Int
+  current_cgpa_cutoff        Float
+  hsc_result_cutoff          Float
+  matric_result_cutoff       Float
+  other_eligibility_criteria String?
+  company_about              String?
+  company_name               String         @unique
+  company_website            String?
+  drive_name                 String
+  has_logo_attachment        Boolean        @default(false)
+  has_jd_attachment          Boolean        @default(false)
+  participants               StudentDrive[] @relation("participants")
 }
 
 model StudentDrive {
@@ -84,7 +79,19 @@ model StudentDrive {
   student           User           @relation("student-drive", fields: [student_id], references: [id])
 }
 
+model University {
+  id                  Int      @id @default(autoincrement())
+  email               String   @unique
+  password            String
+  name                String
+  about               String?
+  website             String?
+  role                Role     @default(UNIVERSITY)
+  has_logo_attachment Boolean  @default(false)
+  created_at          DateTime @default(now())
+}
+
 enum Role {
   USER
-  COMPANY
+  UNIVERSITY
 }

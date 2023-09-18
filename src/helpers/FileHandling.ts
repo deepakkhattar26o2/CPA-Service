@@ -2,7 +2,7 @@ import * as fs from "fs";
 import path from "path";
 import { Request } from "express";
 import multer, { FileFilterCallback } from "multer";
-import { CurrentUser } from "./Types";
+import { CurrentUser } from "../../types";
 import { authDetails } from "./Middleware";
 
 type DestinationCallback = (error: Error | null, destination: string) => void;
@@ -24,7 +24,7 @@ const fileStorage = multer.diskStorage({
   ): void => {
     let ext = String(req.query.attachment_type) == "pfp" ? "jpg" : "pdf";
     const currUser: CurrentUser = authDetails(req);
-    let sender = currUser.role == "COMPANY" ? "c" : "s";
+    let sender = currUser.role == "UNIVERSITY" ? "c" : "s";
     cb(null, `${currUser.id}-${sender}-${req.query.attachment_type}.${ext}`);
   },
 });
